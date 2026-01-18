@@ -15,19 +15,21 @@ Wick and Holt (2019) found that Raven v0.0.5 performed very well in benchmarks l
 
 ## Proposed Methods
 
-### Checking read quality
+### Obtaining raw data and checking read quality
 
-I will use SeqKit v2.10.1 to assess the quality of the raw reads, using the “-a” (all) parameter to display all metrics (Shen et al., 2016). 
+I will obtain the raw reads in .fastq format from NCBI Sequence Read Archive (accession: SRR32410565; Bogaerts et al., 2025). I will also obtain the _S. enterica_ reference genome from NCBI Genome (accession: GCF_000006945.2) for alignment. Then, I will use SeqKit v2.10.1 to assess the quality of the raw reads, using the “-a” (all) parameter to display all metrics (Shen et al., 2016). 
 
 ### Genome assembly and alignment
 
-I will assemble the S. enterica genome using Raven v1.8.3 with default parameters and 4 threads to speed up computational time (Vaser & Šikić, 2021). Then, I will align the assembled genome to the reference genome using minimap2 v2.30, specifying “-a” to output the file in .sam format and “-x map-ont” to map reads to a reference genome (accession: GCF_000006945.2) (Li, 2016). The genome will be sorted, indexed, and converted to .bam format with samtools v1.21 (Li et al., 2009). 
+I will assemble the S. enterica genome using Raven v1.8.3 with default parameters and 4 threads to speed up computational time (Vaser & Šikić, 2021). Then, I will align the assembled genome to the reference genome using minimap2 v2.30, specifying “-a” to output the file in .sam format and “-x map-ont” to map reads to the _S. enterica_ reference genome (accession: GCF_000006945.2) (Li, 2016). The genome will be sorted, indexed, and converted to .bam format with samtools v1.21 (Li et al., 2009). 
 
 ### Variant calling
 
 I will call variants using bcftools mpileup and bcftools call v1.23, as bcftools has been shown to perform well overall and with long reads in particular (Danecek et al., 2021; Schiffer et al., 2025). I will use the following parameters, as per Schiffer et al. (2025): “-x” to ignore read overlaps, “-I” to skip indels, “-Q 13” for the minimum quality score for a base to be included, “-h 100” for homopolymer errors, “-M 10000” for the maximum read length, “-a” for the annotations included in the output .vcf file, “-m” for multiallelic caller, “—ploidy 1” to specify the ploidy of the organism, “-V indels” to skip indels, and “-Oz” to compress the output file. I will visualise the resulting variants in Integrative Genomics Viewer v2.16.0 (Robinson et al., 2011). All command-line tools will be installed and analyses run on a virtual machine running Ubuntu 25.10 with 7 cores and 12 GB of RAM.
 
 ## References
+
+Bogaerts, B., Maex, M., Commans, F., Goeders, N., Van Den Bossche, A., De Keersmaecker, S. C. J., Roosens, N. H. C., Ceyssens, P.-J., Mattheus, W., & Vanneste, K. (2025). Oxford Nanopore Technologies R10 sequencing enables accurate cgMLST-based bacterial outbreak investigation of Neisseria meningitidis and Salmonella enterica when accounting for methylation-related errors. Journal of Clinical Microbiology, 63(10), e00410-25. https://doi.org/10.1128/jcm.00410-25
 
 Breckell, G. L., & Silander, O. K. (2021). Do you want to build a genome? Benchmarking hybrid bacterial genome assembly methods. https://doi.org/10.1101/2021.11.07.467652
 
