@@ -24,7 +24,7 @@ samtools index aligned_sorted_raw.bam
 
 ## 06_Variant calling
 
-run_clair3.sh --bam_fn=aligned_sorted_raw.bam --ref_fn=./refgenome/GCF_000006945.2_ASM694v2_genomic.fna --threads=4 --platform="ont" --no_phasing_for_fa --include_all_ctgs --model_path="${CONDA_PREFIX}/bin/models/r1041_e82_400bps_sup_v500" --output=./clair3_output_raw_aln/
+run_clair3.sh --bam_fn=aligned_sorted_raw.bam --ref_fn=./refgenome/GCF_000006945.2_ASM694v2_genomic.fna --threads=4 --platform="ont" --no_phasing_for_fa --haploid-precise --include_all_ctgs --model_path="${CONDA_PREFIX}/bin/models/r1041_e82_400bps_sup_v500" --output=./clair3_output_raw_aln/
 
 ## 07_Extract chromosome & plasmid lengths for the karyotype file for plotting
 
