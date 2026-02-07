@@ -1,0 +1,57 @@
+#### Code for the analysis of S. enterica genome
+
+## 01_Quality checking the raw reads
+
+fastqc SRR32410565.fastq.gz
+
+## 02_Genome assembly
+
+flye --nano-hq SRR32410565.fastq.gz --out-dir out_nano --threads 4
+
+## 03_Check assembly quality
+
+quast flye_output/assembly.fasta -r refgenome/GCF_000006945.2_ASM694v2_genomic.fna
+
+## 04_Align raw reads to reference genome
+
+minimap2 -ax map-ont -t 4 refgenome/GCF_000006945.2_ASM694v2_genomic.fna SRR32410565.fastq.gz > aligned_raw.sam
+
+## 05_Sort and index .bam file
+
+samtools view -bS aligned_raw.sam -o aligned_raw.bam
+samtools sort aligned_raw.bam -o aligned_sorted_raw.bam
+samtools index aligned_sorted_raw.bam
+
+## 06_Variant calling
+
+run_clair3.sh --bam_fn=aligned_sorted_raw.bam --ref_fn=./refgenome/GCF_000006945.2_ASM694v2_genomic.fna --threads=4 --platform="ont" --no_phasing_for_fa --include_all_ctgs --model_path="${CONDA_PREFIX}/bin/models/r1041_e82_400bps_sup_v500" --output=./clair3_output_raw_aln/
+
+## 07_Extract chromosome & plasmid lengths for the karyotype file for plotting
+
+grep -n ">NC" GCF_000006945.2_ASM694v2_genomic.fna # Get line numbers of headers
+sed -n '1,60720p' GCF_000006945.2_ASM694v2_genomic.fna > chromosome.fa # Extract the genome start-end from the fasta file
+sed -n '60721,$p' GCF_000006945.2_ASM694v2_genomic.fna > plasmid.fa # Extract the plasmid start-end from the fasta file
+grep -v ">NC" chromosome.fa | grep -o [ATGC] | wc -l # Count characters (bases) in the genome and plasmid
+grep -v ">NC" plasmid.fa | grep -o [ATGC] | wc -l
+
+# I used the fasta headers and start/end positions to build a tab-separated karyotype file by hand for plotting with Circos
+
+## 08_Building the variant histogram files for plotting
+
+bcftools view -v snps -o snps_only.vcf merge_output.vcf.gz # Extract all SNPs to a separate .vcf file
+bcftools view -v indels -o indels_only.vcf merge_output.vcf.gz # Extract indels
+
+bedtools makewindows -g genome_tab.txt -w 5000 > 5kb_windows.bed # Make window file specifying intervals of 5000 base pairs, where genome_tab.txt is a tab-separated file containing the chromosome names and size in base pairs
+
+bedtools coverage -a 5kb_windows.bed -b snps_only.vcf > snp_hist.txt # Apply the 5kb windows to the SNPs and indels, and count how many variants are in each window
+bedtools coverage -a 5kb_windows.bed -b indels_only.vcf > indels_hist.txt
+cut -f1,2,3,4 snp_hist.txt > snp_hist5kb.txt # Extract relevant columns only
+cut -f1,2,3,4 indels_hist.txt > indels_hist5kb.txt
+
+# Each histogram file contains a column of the chromosome names, columns of the start and end of each 5kb window, and a count of how many variants are contained within that window
+
+## 09_Plotting the reference genome and variants
+
+# See the folder circos_configuration for the configuration files used to plot the reference genome and variants. I ran the command circos in a directory containing the karyotype file, histogram files, and configuration files.
+
+circos
